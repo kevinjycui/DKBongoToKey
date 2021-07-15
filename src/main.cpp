@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <windows.h>
+#include <ctime>
 
 #include "../inc/main.h"
 #include "../inc/keyboard.h"
@@ -13,6 +14,8 @@
 
 Mix_Music *gMusic = NULL;
 Mix_Chunk *gSFXs[5] = { NULL };
+
+std::time_t exitPressed;
 
 int main(int argc, char ** argv)
 {
@@ -67,11 +70,15 @@ int main(int argc, char ** argv)
                     else
                         mouse_handleButtonEvent(event);
 
-                    if (event.jbutton.button == 9) Mix_PlayChannel(-1, gSFXs[2], 0);
+                    if (event.jbutton.button == 9) {
+                        exitPressed = std::time(0);
+                        Mix_PlayChannel(-1, gSFXs[2], 0);
+                    }
                     else if (Mix_PlayChannel(-1, gSFXs[event.jbutton.button < 2], 0) < 0) fprintf(stderr, "Error playing channel: %s\n", Mix_GetError());
                     break;
                 case SDL_JOYBUTTONUP:
                     if (!kbMouseState) mouse_handleButtonUpEvent(event);
+                    if (event.jbutton.button == 9 && std::time(0) - exitPressed >= 5) runstate = false;
                     break;
                 case SDL_JOYAXISMOTION:
                     if (prevAxisValue != 5000 && event.jaxis.value - prevAxisValue > 20000) {
@@ -91,9 +98,12 @@ int main(int argc, char ** argv)
 
     }
 
+    close_kb();
+    close_mouse();
+
     SDL_Quit();
 
-    printf("Terminated\n");
+    printf("\nTerminated\n");
 
     return 0;
 }

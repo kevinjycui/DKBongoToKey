@@ -40,6 +40,13 @@ int click_mouse(DWORD flag)
     return 0;
 }
 
+void close_mouse()
+{
+    for (DWORD key : holdqueue_m)
+        click_mouse(key);
+    holdqueue_m.clear();
+}
+
 void mouse_handleButtonEvent(SDL_Event event)
 {
     printf("%d", event.jbutton.button);

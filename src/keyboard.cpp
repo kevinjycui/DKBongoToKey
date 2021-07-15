@@ -25,6 +25,13 @@ int printKeyName(int key_code)
     return rc;
 }
 
+void close_kb()
+{
+    for (unsigned int key : holdqueue_k)
+        keybd_event(key, 0, KEYEVENT_KEYUP, 0);
+    holdqueue_k.clear();
+}
+
 void kb_handleButtonEvent(SDL_Event event)
 {
     printf("%d", event.jbutton.button);
