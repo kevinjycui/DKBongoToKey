@@ -1,18 +1,18 @@
 #define SDL_MAIN_HANDLED
 
 #include <stdio.h>
-#include <cmath>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <windows.h>
 
 #include "../inc/main.h"
 #include "../inc/keyboard.h"
+#include "../inc/mouse.h"
 #include "../inc/mixer.h"
 
 
 Mix_Music *gMusic = NULL;
-Mix_Chunk *gSFXs[3] = { NULL };
+Mix_Chunk *gSFXs[5] = { NULL };
 
 int main(int argc, char ** argv)
 {
@@ -41,9 +41,8 @@ int main(int argc, char ** argv)
     printf("%i joysticks were found.\n\n", SDL_NumJoysticks());
     printf("The names of the joysticks are:\n");
 		
-    for(int i=0; i < SDL_NumJoysticks(); i++) {
+    for(int i=0; i < SDL_NumJoysticks(); i++)
         printf("\t%d %s\n", i, SDL_JoystickName(SDL_JoystickOpen(i)));
-    }
 
     printf("\n\n=== START INPUT ===\n\n> ");
 
@@ -52,7 +51,9 @@ int main(int argc, char ** argv)
     bool runstate = true;
     int prevAxisValue = 5000;
 
-    Mix_PlayMusic(gMusic, -1);
+    bool kbMouseState = true;
+
+    if (Mix_PlayMusic(gMusic, -1) < 0) fprintf(stderr, "Error playing music: %s\n", Mix_GetError());
 
     while (runstate)
     {
@@ -61,24 +62,32 @@ int main(int argc, char ** argv)
             switch(event.type)
             {
                 case SDL_JOYBUTTONDOWN:
-                    handleButtonEvent(event);
+                    if (kbMouseState)
+                        kb_handleButtonEvent(event);
+                    else
+                        mouse_handleButtonEvent(event);
+
                     if (event.jbutton.button == 9) Mix_PlayChannel(-1, gSFXs[2], 0);
-                    else Mix_PlayChannel(-1, gSFXs[event.jbutton.button < 2], 0);
+                    else if (Mix_PlayChannel(-1, gSFXs[event.jbutton.button < 2], 0) < 0) fprintf(stderr, "Error playing channel: %s\n", Mix_GetError());
+                    break;
+                case SDL_JOYBUTTONUP:
+                    if (!kbMouseState) mouse_handleButtonUpEvent(event);
                     break;
                 case SDL_JOYAXISMOTION:
-                    if (prevAxisValue != 5000 && std::abs(prevAxisValue - event.jaxis.value) > 20000) {
+                    if (prevAxisValue != 5000 && event.jaxis.value - prevAxisValue > 20000) {
                         printf("C");
-                        if (digit == 4) {
-                            Mix_PlayChannel(-1, gSFXs[3], 0);
+                        if (!kbMouseState || digit == 4) {
+                            kbMouseState = !kbMouseState;
+                            if (Mix_PlayChannel(-1, gSFXs[3], 0) < 0) fprintf(stderr, "Error playing channel: %s\n", Mix_GetError());
                         }
-                        else {
-                            Mix_PlayChannel(-1, gSFXs[4], 0);
-                        }
+                        else if (Mix_PlayChannel(-1, gSFXs[4], 0) < 0) fprintf(stderr, "Error playing channel: %s\n", Mix_GetError());
                     }
                     prevAxisValue = event.jaxis.value;
                     break;
             }
         }
+
+        if (!kbMouseState) runMouseCommands();
 
     }
 

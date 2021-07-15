@@ -3,6 +3,4 @@
 extern unsigned int digit;
 
 int printKeyName(int key_code);
-void handleButtonEvent(SDL_Event event);
-
-const int KEYEVENT_KEYUP = 0x02;
+void kb_handleButtonEvent(SDL_Event event);

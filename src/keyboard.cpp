@@ -6,11 +6,13 @@
 #include "../inc/keyboard.h"
 
 
+const int KEYEVENT_KEYUP = 0x02;
+
 unsigned int digit = 4;
 unsigned int value = 0;
 
-bool hold = false;
-std::vector<unsigned int> holdqueue;
+bool hold_k = false;
+std::vector<unsigned int> holdqueue_k;
 
 int printKeyName(int key_code)
 {
@@ -23,15 +25,15 @@ int printKeyName(int key_code)
     return rc;
 }
 
-void handleButtonEvent(SDL_Event event)
+void kb_handleButtonEvent(SDL_Event event)
 {
     printf("%d", event.jbutton.button);
     if (event.jbutton.button == 9) {
-        hold = !hold;
-        if (!hold) {
-            for (unsigned int key : holdqueue)
+        hold_k = !hold_k;
+        if (!hold_k) {
+            for (unsigned int key : holdqueue_k)
                 keybd_event(key, 0, KEYEVENT_KEYUP, 0);
-            holdqueue.clear();
+            holdqueue_k.clear();
         }
         return;
     }
@@ -41,15 +43,15 @@ void handleButtonEvent(SDL_Event event)
         printf("\n");
         if (printKeyName(value)) {
             keybd_event(value, 0, 0, 0);
-            if (!hold)
+            if (!hold_k)
                 keybd_event(value, 0, KEYEVENT_KEYUP, 0);
             else
-                holdqueue.push_back(value);
+                holdqueue_k.push_back(value);
         }
         else printf("Invalid keycode\n");
         digit = 4;
         value = 0;
-        if (hold) printf("(hold)");
+        if (hold_k) printf("(hold)");
         printf("> ");
     }
 }
