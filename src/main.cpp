@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
 
     bool kbMouseState = true;
 
-    if (Mix_PlayMusic(gMusic, -1) < 0) fprintf(stderr, "Error playing music: %s\n", Mix_GetError());
+    // if (Mix_PlayMusic(gMusic, -1) < 0) fprintf(stderr, "Error playing music: %s\n", Mix_GetError());
 
     while (runstate)
     {
